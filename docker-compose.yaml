@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+  api:
+    container_name: auth-api-dev
+    build:
+      context: .
+      target: development
+      dockerfile: ./Dockerfile
+    env_file: .env
+    command: sh -c "yarn start:dev"
+    depends_on:
+      - db
+    ports:
+      - 4000:4000
+      - 9229:9229
+    networks:
+      - auth-api
+    volumes:
+      - .:/usr/src/app
+    restart: unless-stopped
+
+  db:
+    build: ./.docker/postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - ./.docker/dbdata:/var/lib/postgresql/data
+      - ./.docker/sql:/docker-entrypoint-initdb.d
+    networks:
+      - auth-api
+
+  redis:
+    build:
+      context: .docker/redis
+      dockerfile: ./Dockerfile
+    ports:
+      - 6379:6379
+    volumes:
+      - ./.docker/redis/data:/data
+    networks:
+      - auth-api
+
+networks:
+  auth-api:
+    driver: bridge
