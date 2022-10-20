@@ -83,7 +83,6 @@ export class RedisAccessTokenIssuer implements AccessTokenIssuer {
       console.log(error);
       const payload = await this.tokenDecoder.decode<TokenPayload>({
         token: refreshToken,
-        secretOrKey: secretOrPrivateKey,
       });
       await this.removeTokenByAccountIdRepository.removeTokenByAccountId(
         payload.accountId,

@@ -6,5 +6,4 @@ export const tokenDecoderToken = 'TokenDecoder';
 
 export type TokenDecoderParams = {
   token: string;
-  secretOrKey: string | Buffer;
 };
