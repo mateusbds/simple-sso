@@ -1,17 +1,16 @@
 import path from 'path';
 
 import { Module, Provider } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 
+import { PrismaService } from './database/prisma/PrismaService';
 import { tokenAdapterProvider } from './encryption/TokenAdapter';
 import { bcryptAdapterProvider } from './encryption/BcryptAdapter';
-import { accountRepositoryProvider } from './database/typeorm/repositories/AccountRepository';
 import { localFileReaderProvider } from './file/LocalFileReader';
-import { AccountEntity } from './database/typeorm/entities/AccountEntity';
 import { RedisModule } from './database/redis/RedisModule';
 import { tokenRepositoryProvider } from './database/redis/repositories/TokenRepository';
+import { accountRepositoryProvider } from './database/prisma/repositories/AccountRepositor';
 
 const providers: Provider[] = [
   // File
@@ -24,7 +23,7 @@ const providers: Provider[] = [
   // Repositories Redis,
   ...tokenRepositoryProvider,
 
-  // Repositories Typeorm
+  // Repositories Prisma
   ...accountRepositoryProvider,
 ];
 
@@ -34,17 +33,6 @@ const providers: Provider[] = [
       driver: ApolloDriver,
       autoSchemaFile: path.resolve(__dirname, './graphql/schema.gql'),
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'db',
-      port: 5432,
-      username: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_DATABASE,
-      entities: ['./dist/src/infra/database/typeorm/entities/**/*.js'],
-      subscribers: ['./dist/src/infra/database/typeorm/subscribers/**/*.js'],
-    }),
-    TypeOrmModule.forFeature([AccountEntity]),
     RedisModule.forRoot({
       host: process.env.REDIS_HOST,
       port: parseInt(process.env.REDIS_PORT, 10),
@@ -52,7 +40,7 @@ const providers: Provider[] = [
       password: process.env.REDIS_PASSWORD,
     }),
   ],
-  providers: [...providers],
-  exports: [...providers],
+  providers: [PrismaService, ...providers],
+  exports: [PrismaService, ...providers],
 })
 export class InfraModule {}

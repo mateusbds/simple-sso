@@ -4,11 +4,13 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 COPY yarn.lock ./
+COPY prisma ./prisma
 
 RUN yarn
 
 COPY . .
 
+RUN yarn prisma generate
 RUN yarn build
 
 FROM node:16-alpine3.14 as production
@@ -20,6 +22,7 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 COPY yarn.lock ./
+COPY prisma ./prisma
 
 RUN yarn --only=production
 

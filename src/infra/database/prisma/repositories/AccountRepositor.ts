@@ -1,37 +1,27 @@
-import { Repository } from 'typeorm';
 import { Injectable, Provider } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 
+import {
+  CreateAccountRepository,
+  CreateAccountRepositoryParams,
+  createAccountRepositoryToken,
+} from '@application/contracts/database/repositories/CreateAccountRepository';
 import {
   FindAccountByEmailRepository,
   findAccountByEmailRepositoryToken,
 } from '@application/contracts/database/repositories/FindAccountRepository';
 import { Account } from '@domain/entities/Account';
 
-import { AccountEntity } from '../entities/AccountEntity';
-import {
-  CreateAccountRepository,
-  CreateAccountRepositoryParams,
-  createAccountRepositoryToken,
-} from '@application/contracts/database/repositories/CreateAccountRepository';
+import { PrismaService } from '../PrismaService';
 
 @Injectable()
 export class AccountRepository
   implements FindAccountByEmailRepository, CreateAccountRepository
 {
-  constructor(
-    @InjectRepository(AccountEntity)
-    private readonly accountEntityRepository: Repository<AccountEntity>,
-  ) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   async findByEmail(email: string): Promise<Account> {
-    const data = await this.accountEntityRepository.findOne({
-      where: {
-        email,
-      },
-      select: {
-        password: true,
-      },
+    const data = await this.prismaService.account.findUnique({
+      where: { email },
     });
     if (!data) {
       return undefined;
@@ -45,13 +35,20 @@ export class AccountRepository
 
   async create(params: CreateAccountRepositoryParams): Promise<Account> {
     const { email, password } = params;
-    const account = await this.accountEntityRepository.save({
-      email,
-      password,
+    const data = await this.prismaService.account.create({
+      data: {
+        email,
+        password,
+      },
+      select: {
+        id: true,
+        email: true,
+        password: false,
+      },
     });
     return {
-      id: account.id,
-      email: account.email,
+      id: data.id,
+      email: data.email,
     };
   }
 }

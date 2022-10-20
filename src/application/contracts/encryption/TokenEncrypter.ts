@@ -1,5 +1,7 @@
 export abstract class TokenEncrypter {
-  abstract sign(params: TokenEncrypterParams): Promise<string>;
+  abstract sign<T = Record<string, unknown>>(
+    params: TokenEncrypterParams<T>,
+  ): Promise<string>;
 }
 
 export const tokenEncrypterToken = 'TokenEncrypter';
@@ -9,7 +11,7 @@ export type TokenEncrypterOptions = {
   algorithm?: 'RS256';
 };
 
-export type TokenEncrypterParams<T = Record<string, unknown>> = {
+export type TokenEncrypterParams<T> = {
   payload: T;
   secretOrPrivateKey: string | Buffer;
   options?: TokenEncrypterOptions;

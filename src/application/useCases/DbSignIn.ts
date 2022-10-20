@@ -32,6 +32,7 @@ import {
   AddTokenRepository,
   addTokenRepositoryToken,
 } from '@application/contracts/database/repositories/AddTokenRepository';
+import { TokenPayload } from '@domain/entities/TokenPayload';
 
 @Injectable()
 export class DbSignIn implements SignIn {
@@ -66,9 +67,9 @@ export class DbSignIn implements SignIn {
     const secretOrPrivateKey = await this.fileReader.readFile({
       pathToFile: './keys/jwtRS256.key',
     });
-    const accessToken = await this.tokenEncrypter.sign({
+    const accessToken = await this.tokenEncrypter.sign<TokenPayload>({
       payload: {
-        id: account.id,
+        accountId: account.id,
       },
       secretOrPrivateKey,
       options: {
@@ -76,9 +77,9 @@ export class DbSignIn implements SignIn {
         algorithm: 'RS256',
       },
     });
-    const refreshToken = await this.tokenEncrypter.sign({
+    const refreshToken = await this.tokenEncrypter.sign<TokenPayload>({
       payload: {
-        id: account.id,
+        accountId: account.id,
       },
       secretOrPrivateKey,
       options: {
